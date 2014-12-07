@@ -1,0 +1,7 @@
+{
+    "name": "chuchu",
+    "private": true,
+    "dependencies": {
+        "qunit": "~1.11.0"
+    }
+}
