@@ -1,3 +1,5 @@
+# TODO: Add tests for the Direction object.
+
 test('grid size correct', () ->
   grid = new Grid(12, 9)
   ok(grid.slots.length == 108, '12x9 size is 108')
@@ -90,13 +92,14 @@ test('MovingEntity.move', () ->
   x x x x
   ###
   grid = new Grid(4, 4)
+  level = new Level(grid)
   grid.addWall(grid.getSlot(0,0), grid.getSlot(1, 0))
   grid.addWall(grid.getSlot(1,0), grid.getSlot(2, 0))
   grid.addWall(grid.getSlot(2,0), grid.getSlot(2, 1))
 
   path = Direction.fromStringArray(['down', 'down', 'down', 'right', 'right', 'right', 'up', 'up', 'up', 'left', 'right', 'down'])
 
-  entity = new MovingEntity(grid)
+  entity = new MovingEntity(level)
   x = 0
   y = 0
   for dir in path
@@ -109,4 +112,36 @@ test('MovingEntity.move', () ->
       ok(true, "moved #{Direction.str(dir)}")
     else
       ok(false, "did not move #{Direction.str(dir)}")
+)
+
+test('CoinEntity.onPlayerSlotEnter', () ->
+  ### Grid
+  coin player
+  ###
+  grid = new Grid(2, 1)
+  level = new Level(grid)
+  player = new Player()
+  grid.getSlot(1, 0).setOwner(player)
+  coin = new CoinEntity(level, 0, 0)
+  ok(level.entities.length == 1, 'coin added to level')
+  ok(player.score == 0, 'player score is 0')
+  coin.move() # Coin moves right, enters player owned slot.
+  ok(player.score == 1, 'coin moved into player owned slot; player score is 1')
+  ok(level.entities.length == 0, 'coin removed from level')
+)
+
+test('BombEntity.onPlayerSlotEnter', () ->
+  ### Grid
+  bomb player
+  ###
+  grid = new Grid(2, 1)
+  level = new Level(grid)
+  player = new Player()
+  grid.getSlot(1, 0).setOwner(player)
+  bomb = new BombEntity(level, 0, 0)
+  ok(level.entities.length == 1, 'bomb added to level')
+  ok(player.score == 0, 'player score is 0')
+  bomb.move() # Coin moves right, enters player owned slot.
+  ok(player.score == -1, 'bomb moved into player owned slot; player score is -1')
+  ok(level.entities.length == 0, 'bomb removed from level')
 )

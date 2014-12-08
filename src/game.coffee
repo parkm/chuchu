@@ -46,6 +46,26 @@ Direction.mag = (dir) -> # Gets the magnitude of a direction.
     y--
   return {x:x, y:y}
 
+class Game
+  constructor: () ->
+    @players = []
+
+  addPlayer: (player) ->
+    @players.push(player)
+
+class Player
+  constructor: (color) ->
+    @score = 0
+    @color = color
+
+class Level
+  constructor: (grid) ->
+    @grid = grid
+    @entities = []
+
+  addEntity: (entity) -> @entities.push(entity)
+  removeEntity: (entity) -> @entities.splice(@entities.indexOf(entity), 1)
+
 class Grid
   constructor: (hCells, vCells) ->
     @slots = []
@@ -85,13 +105,18 @@ class GridSlot
     @grid = grid
     @x = x
     @y = y
-    @direction = null
     @walls = {
       left: false,
       up: false,
       right: false,
       down: false
     }
+    @direction = null
+    @owner = null
+
+  # Sets the owner of this slot to a player. MovingEntity's will apply to the player if it comes into contact with this slot.
+  setOwner: (player) ->
+    @owner = player
 
   # Returns neighbors in 4 directions.
   getNeighbors: () ->
@@ -116,10 +141,10 @@ class GridSlot
     y += mag.y
     return ((x >= 0 and y >= 0) and (x < @grid.hCells and y < @grid.vCells))
 
-
 class MovingEntity
-  constructor: (grid, gridX=0, gridY=0) ->
-    @grid = grid
+  constructor: (level, gridX=0, gridY=0) ->
+    @level = level
+    @level.addEntity(@)
     @gridX = gridX
     @gridY = gridY
 
@@ -127,8 +152,11 @@ class MovingEntity
     @currentDir = null
     @dirPreference = Direction.fromStringArray(['up', 'right', 'down', 'left']) # Preferred directions are first.
 
+  delete: () -> # Removes self from level.
+    @level.removeEntity(@)
+
   getSlot: () ->
-    @grid.getSlot(@gridX, @gridY)
+    @level.grid.getSlot(@gridX, @gridY)
 
   # Returns true if it's possible to move in a direction.
   isPossibleMove: (dir) ->
@@ -161,3 +189,21 @@ class MovingEntity
     mag = Direction.mag(dir)
     @gridX += mag.x
     @gridY += mag.y
+
+    slot = @getSlot()
+    if slot.owner != null
+      @onPlayerSlotEnter(slot.owner, slot)
+
+  onPlayerSlotEnter: (slot) -> # Called when this entity enters a slot owned by a player.
+
+class CoinEntity extends MovingEntity
+  worth: 1
+  onPlayerSlotEnter: (player, slot) ->
+    player.score += @worth
+    @delete()
+
+class BombEntity extends MovingEntity
+  worth: -1
+  onPlayerSlotEnter: (player, slot) ->
+    player.score += @worth
+    @delete()
