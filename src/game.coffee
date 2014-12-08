@@ -117,6 +117,11 @@ class GridSlot
   # Sets the owner of this slot to a player. MovingEntity's will apply to the player if it comes into contact with this slot.
   setOwner: (player) ->
     @owner = player
+    @direction = null
+
+  setDirection: (dir) ->
+    return if @owner != null
+    @direction = dir
 
   # Returns neighbors in 4 directions.
   getNeighbors: () ->
@@ -170,8 +175,12 @@ class MovingEntity
     slot = @getSlot()
     dir = null
 
+    # Go in the direction of the current slot if possible.
+    if slot.direction != null
+      dir = slot.direction if @isPossibleMove(slot.direction)
+
     # Continue in the same direction if possible.
-    if @currentDir != null
+    if dir == null and @currentDir != null
       dir = @currentDir if @isPossibleMove(@currentDir)
 
     # If current direction is not possible then find a new direction.

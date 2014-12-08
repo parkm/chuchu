@@ -85,9 +85,9 @@ test('MovingEntity.move', () ->
   ### Grid
   x|x|x x
       _
-  x x x x
+  x > v x
 
-  x x x x
+  > ^ > x
 
   x x x x
   ###
@@ -97,7 +97,13 @@ test('MovingEntity.move', () ->
   grid.addWall(grid.getSlot(1,0), grid.getSlot(2, 0))
   grid.addWall(grid.getSlot(2,0), grid.getSlot(2, 1))
 
-  path = Direction.fromStringArray(['down', 'down', 'down', 'right', 'right', 'right', 'up', 'up', 'up', 'left', 'right', 'down'])
+  grid.getSlot(0, 2).setDirection(Direction.RIGHT)
+  grid.getSlot(1, 2).setDirection(Direction.UP)
+  grid.getSlot(1, 1).setDirection(Direction.RIGHT)
+  grid.getSlot(2, 1).setDirection(Direction.DOWN)
+  grid.getSlot(2, 2).setDirection(Direction.RIGHT)
+
+  path = Direction.fromStringArray(['down', 'down', 'right', 'up', 'right', 'down', 'right', 'up', 'up', 'left', 'right', 'down'])
 
   entity = new MovingEntity(level)
   x = 0
