@@ -8,7 +8,11 @@ class Grid
         @slots.push(new GridSlot(this, x, y))
 
   getSlot: (x, y) ->
-    return @slots[x + (y * @vCells)]
+    slot = @slots[x + (y * @vCells)]
+    if slot == undefined
+      return null
+    else
+      return slot
 
   # Adds a wall between the two slots. Slots must be neighbors to work correctly.
   addWall: (slotA, slotB) ->
@@ -40,3 +44,17 @@ class GridSlot
       right: false,
       bottom: false
     }
+
+  # Returns neighbors in 4 direction.
+  getNeighbors: () ->
+    slots = [
+      @grid.getSlot(@x,   @y-1),
+      @grid.getSlot(@x+1, @y),
+      @grid.getSlot(@x,   @y+1),
+      @grid.getSlot(@x-1, @y)
+    ]
+    out = []
+    for slot in slots
+      if slot != null
+        out.push(slot)
+    return out
