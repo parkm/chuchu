@@ -20,14 +20,14 @@ test('Grid.addWall', () ->
   slotA = grid.getSlot(1, 1)
   slotB = grid.getSlot(1, 0)
   grid.addWall(slotA, slotB)
-  ok(slotA.walls.top == true, 'bottom slot gets top wall')
-  ok(slotB.walls.bottom == true, 'top slot gets bottom wall')
+  ok(slotA.walls.up == true, 'bottom slot gets top wall')
+  ok(slotB.walls.down == true, 'top slot gets bottom wall')
 
   slotA = grid.getSlot(1, 0)
   slotB = grid.getSlot(1, 1)
   grid.addWall(slotA, slotB)
-  ok(slotA.walls.bottom == true, 'top slot gets bottom wall')
-  ok(slotB.walls.top == true, 'bottom slot gets top wall')
+  ok(slotA.walls.down == true, 'top slot gets bottom wall')
+  ok(slotB.walls.up == true, 'bottom slot gets top wall')
 
   slotA = grid.getSlot(2, 1)
   slotB = grid.getSlot(1, 1)
@@ -56,4 +56,57 @@ test('GridSlot.getNeighbors', () ->
   ok(slotNeighbors.indexOf(grid.getSlot(2, 1)) != -1, '1,1 has neighbor 2,1')
   ok(slotNeighbors.indexOf(grid.getSlot(1, 2)) != -1, '1,1 has neighbor 1,2')
   ok(slotNeighbors.indexOf(grid.getSlot(0, 1)) != -1, '1,1 has neighbor 0,1')
+)
+
+test('GridSlot.hasNeighbor', () ->
+  grid = new Grid(3, 3)
+  slot = grid.getSlot(0, 0)
+  ok(slot.hasNeighbor(Direction.UP) == false, '0,0 has no up neighbor')
+  ok(slot.hasNeighbor(Direction.LEFT) == false, '0,0 has no left neighbor')
+  ok(slot.hasNeighbor(Direction.RIGHT) == true, '0,0 has right neighbor')
+  ok(slot.hasNeighbor(Direction.DOWN) == true, '0,0 has down neighbor')
+
+  slot = grid.getSlot(1, 1)
+  ok(slot.hasNeighbor(Direction.UP) == true, '1,1 has up neighbor')
+  ok(slot.hasNeighbor(Direction.LEFT) == true, '1,1 has left neighbor')
+  ok(slot.hasNeighbor(Direction.RIGHT) == true, '1,1 has right neighbor')
+  ok(slot.hasNeighbor(Direction.DOWN) == true, '1,1 has down neighbor')
+
+  slot = grid.getSlot(2, 2)
+  ok(slot.hasNeighbor(Direction.RIGHT) == false, '2,2 has no right neighbor')
+  ok(slot.hasNeighbor(Direction.DOWN) == false, '2,2 has no down neighbor')
+  ok(slot.hasNeighbor(Direction.UP) == true, '2,2 has up neighbor')
+  ok(slot.hasNeighbor(Direction.LEFT) == true, '2,2 has left neighbor')
+)
+
+test('MovingEntity.move', () ->
+  ### Grid
+  x|x|x x
+      _
+  x x x x
+
+  x x x x
+
+  x x x x
+  ###
+  grid = new Grid(4, 4)
+  grid.addWall(grid.getSlot(0,0), grid.getSlot(1, 0))
+  grid.addWall(grid.getSlot(1,0), grid.getSlot(2, 0))
+  grid.addWall(grid.getSlot(2,0), grid.getSlot(2, 1))
+
+  path = Direction.fromStringArray(['down', 'down', 'down', 'right', 'right', 'right', 'up', 'up', 'up', 'left', 'right', 'down'])
+
+  entity = new MovingEntity(grid)
+  x = 0
+  y = 0
+  for dir in path
+    entity.move() # Should move down since no top neighbor and wall to the right.
+    mag = Direction.mag(dir)
+    x += mag.x
+    y += mag.y
+    correct = (entity.gridX == x and entity.gridY == y)
+    if correct
+      ok(true, "moved #{Direction.str(dir)}")
+    else
+      ok(false, "did not move #{Direction.str(dir)}")
 )

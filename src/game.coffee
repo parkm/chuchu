@@ -74,11 +74,11 @@ class Grid
       slotB.walls.left = true
 
     if yDiff < 0
-      slotA.walls.top = true
-      slotB.walls.bottom = true
+      slotA.walls.up = true
+      slotB.walls.down = true
     else if yDiff > 0
-      slotA.walls.bottom = true
-      slotB.walls.top = true
+      slotA.walls.down = true
+      slotB.walls.up = true
 
 class GridSlot
   constructor: (grid, x, y) ->
@@ -88,12 +88,12 @@ class GridSlot
     @direction = null
     @walls = {
       left: false,
-      top: false,
+      up: false,
       right: false,
-      bottom: false
+      down: false
     }
 
-  # Returns neighbors in 4 direction.
+  # Returns neighbors in 4 directions.
   getNeighbors: () ->
     slots = [
       @grid.getSlot(@x,   @y-1),
@@ -106,3 +106,58 @@ class GridSlot
       if slot != null
         out.push(slot)
     return out
+
+  # Returns true if slot has a neighbor in direction.
+  hasNeighbor: (dir) ->
+    x = @x
+    y = @y
+    mag = Direction.mag(dir)
+    x += mag.x
+    y += mag.y
+    return ((x >= 0 and y >= 0) and (x < @grid.hCells and y < @grid.vCells))
+
+
+class MovingEntity
+  constructor: (grid, gridX=0, gridY=0) ->
+    @grid = grid
+    @gridX = gridX
+    @gridY = gridY
+
+    @lastDir = null # Last direction we moved from.
+    @currentDir = null
+    @dirPreference = Direction.fromStringArray(['up', 'right', 'down', 'left']) # Preferred directions are first.
+
+  getSlot: () ->
+    @grid.getSlot(@gridX, @gridY)
+
+  # Returns true if it's possible to move in a direction.
+  isPossibleMove: (dir) ->
+    slot = @getSlot()
+    if slot.hasNeighbor(dir) # Make sure there's a neighbor to move to.
+      return !slot.walls[Direction.str(dir)] # Make sure there's not a wall in the way.
+    return false
+
+  # Moves the entity to the next slot based on a movement algorithm.
+  move: () ->
+    slot = @getSlot()
+    dir = null
+
+    # Continue in the same direction if possible.
+    if @currentDir != null
+      dir = @currentDir if @isPossibleMove(@currentDir)
+
+    # If current direction is not possible then find a new direction.
+    if dir == null
+      for prefDir in @dirPreference
+        continue if prefDir == @lastDir or prefDir == @currentDir # Don't move to the direction we came from or current direction (since we proved it impossible above).
+        if @isPossibleMove(prefDir)
+            dir = prefDir
+            break
+
+    dir = @lastDir if dir == null
+    @currentDir = dir
+    @lastDir = Direction.opposite(dir)
+
+    mag = Direction.mag(dir)
+    @gridX += mag.x
+    @gridY += mag.y
