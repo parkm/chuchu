@@ -1,0 +1,21 @@
+Level - model
+    grid
+    movingEntities = []
+
+Level - controller
+    onKeyDown:
+        if mouse position is inside a grid slot:
+            if key is up: # repeat for left,right,down
+                call onUpKey on grid slot
+
+GridSlot - model
+    direction
+
+GridSlot(model) - controller
+    onUpKey:
+        set direction to up
+        emit model.onDirectionChange event
+
+GridSlot(model) - view
+    add event listener for model.onDirectionChange:
+        set graphic to new direction
