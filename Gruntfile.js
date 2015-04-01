@@ -9,6 +9,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'src/js/game.js': 'src/game.coffee',
+                    'src/js/main.js': 'src/main.coffee',
                     'test/js/tests.js': 'test/tests.coffee'
                 }
             }
@@ -18,6 +19,7 @@ module.exports = function(grunt) {
             scripts: {
                 files: [
                     'src/game.coffee',
+                    'src/main.coffee',
                     'test/tests.coffee'
                 ],
                 tasks: ['coffee']
