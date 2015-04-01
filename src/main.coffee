@@ -29,6 +29,17 @@ class GridView
     @display = display
     world.addChild(@display)
 
+  updateWalls: (grid) ->
+    for slot in grid.slots
+      if slot.walls.right
+        @display.beginFill(0,1)
+        @display.drawRect(slot.x * @cellWidth + @cellWidth - 5, slot.y * @cellHeight, 10, @cellHeight)
+        @display.endFill()
+      else if slot.walls.down
+        @display.beginFill(0,1)
+        @display.drawRect(slot.x * @cellWidth, slot.y * @cellHeight + @cellHeight - 5, @cellWidth, 10)
+        @display.endFill()
+
 class LevelView
   constructor: (renderer, world, level) ->
     @renderer = renderer
@@ -79,6 +90,7 @@ onBodyLoad = () ->
   #gridView = new GridView(renderer, world, grid)
   levelView = new LevelView(renderer, world, level)
   levelControl = new LevelController(level, levelView)
+  levelControl.gridView.updateWalls(grid)
 
   levelControl.onCoinAdd(coin)
   levelControl.onCoinAdd(coin2)
