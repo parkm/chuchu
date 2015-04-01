@@ -76,7 +76,11 @@ class Grid
         @slots.push(new GridSlot(this, x, y))
 
   getSlot: (x, y) ->
-    slot = @slots[x + (y * @vCells)]
+    # If x,y does not fit within the grid then return null.
+    if !(x >= 0 and x < @hCells and y >= 0 and y < @vCells)
+      return null
+
+    slot = @slots[x + (y * @hCells)]
     if slot == undefined
       return null
     else

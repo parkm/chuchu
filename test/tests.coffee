@@ -15,6 +15,11 @@ test('Grid.getSlot', () ->
       ok(slot.x == x and slot.y == y, "getSlot(#{x}, #{y}) got slot #{slot.x}, #{slot.y}")
   ok(grid.getSlot(-1, -1) == null, 'getSlot(-1, -1) returns null')
   ok(grid.getSlot(4, 4) == null, 'getSlot(4, 4) returns null')
+
+
+  grid = new Grid(2, 6)
+  ok(grid.getSlot(1, 2) != null, 'Slot 1,2 exists in 2x6 grid.')
+  ok(grid.getSlot(2, 3) == null, 'Slot 1,3 is null in 2x6 grid.')
 )
 
 test('Grid.addWall', () ->
