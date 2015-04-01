@@ -46,6 +46,23 @@ Direction.mag = (dir) -> # Gets the magnitude of a direction.
     y--
   return {x:x, y:y}
 
+class EventHandler
+  constructor: () ->
+    @listeners = {}
+
+  addListener: (eventName, callback) ->
+    listener = @listeners[eventName]
+    if listener
+      listener.push(callback)
+    else
+      @listeners[eventName] = [callback]
+
+  emitEvent: (eventName, details={}) ->
+    listener = @listeners[eventName]
+    if listener
+      for callback in listener
+        callback(details)
+
 class Game
   constructor: () ->
     @players = []
@@ -150,8 +167,9 @@ class GridSlot
     y += mag.y
     return ((x >= 0 and y >= 0) and (x < @grid.hCells and y < @grid.vCells))
 
-class MovingEntity
+class MovingEntity extends EventHandler
   constructor: (level, gridX=0, gridY=0) ->
+    super()
     @level = level
     @level.addEntity(@)
     @gridX = gridX
@@ -206,6 +224,8 @@ class MovingEntity
     slot = @getSlot()
     if slot.owner != null
       @onPlayerSlotEnter(slot.owner, slot)
+
+    @emitEvent('onMove')
 
   onPlayerSlotEnter: (slot) -> # Called when this entity enters a slot owned by a player.
 
