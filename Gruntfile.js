@@ -3,25 +3,32 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         coffee: {
-            compile: {
+            src: {
                 options: {
                     bare: true
                 },
-                files: {
-                    'src/js/game.js': 'src/game.coffee',
-                    'src/js/main.js': 'src/main.coffee',
-                    'test/js/tests.js': 'test/tests.coffee'
-                }
+                expand: true,
+                flatten: true,
+                cwd: 'src/',
+                src: ['*.coffee'],
+                dest: 'src/js/',
+                ext: '.js'
+            },
+            tests: {
+                options: {
+                    bare: true
+                },
+                expand: true,
+                flatten: true,
+                cwd: 'test/',
+                src: ['*.coffee'],
+                dest: 'test/js/',
+                ext: '.js'
             }
         },
-
         watch: {
             scripts: {
-                files: [
-                    'src/game.coffee',
-                    'src/main.coffee',
-                    'test/tests.coffee'
-                ],
+                files: ['**/*.coffee'],
                 tasks: ['coffee']
             }
         }
