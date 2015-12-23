@@ -1,5 +1,13 @@
 # TODO: Add tests for the Direction object.
 
+test('Rect.isPointInside', () ->
+  rect = new Rect(10, 20, 5, 15)
+  ok(rect.isPointInside(10, 20) == true, 'x,y inside rect')
+  ok(rect.isPointInside(9, 19) == false, '(x,y - 1) not inside rect')
+  ok(rect.isPointInside(15, 35) == true, '(x,y + w,h) inside rect')
+  ok(rect.isPointInside(16, 36) == false, '(x,y + w,h) + 1 not inside rect')
+)
+
 test('grid size correct', () ->
   grid = new Grid(12, 9)
   ok(grid.slots.length == 108, '12x9 size is 108')

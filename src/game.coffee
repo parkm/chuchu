@@ -46,6 +46,17 @@ Direction.mag = (dir) -> # Gets the magnitude of a direction.
     y--
   return {x:x, y:y}
 
+class Rect
+  constructor: (x, y, w, h) ->
+    @x = x
+    @y = y
+    @w = w
+    @h = h
+
+  # Returns if point is inside rectangle
+  isPointInside: (x, y) ->
+    return (y >= @y and y <= @y + @h) and (x >= @x and x <= @x + @w)
+
 class EventHandler
   constructor: () ->
     @listeners = {}
@@ -118,6 +129,7 @@ class Grid
       slotA.walls.up = true
       slotB.walls.down = true
     else if yDiff > 0
+
       slotA.walls.down = true
       slotB.walls.up = true
 
