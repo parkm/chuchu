@@ -1,5 +1,3 @@
-
-
 class GridController
   constructor: (gameControl, grid) ->
     display = new PIXI.Graphics()
@@ -10,7 +8,6 @@ class GridController
     colorToggle = false
     for y in [0..grid.vCells-1] by 1
       for x in [0..grid.hCells-1] by 1
-
         if !colorToggle
           display.beginFill(0x006EB9,1)
         else
@@ -19,6 +16,12 @@ class GridController
 
         display.drawRect(x * @cellWidth, y * @cellHeight , @cellWidth, @cellHeight)
         display.endFill()
+
+        slot = grid.getSlot(x, y)
+        if slot.owner
+          display.beginFill(slot.owner.color, 1)
+          display.drawRect(x * @cellWidth + @cellWidth/2, y * @cellHeight + @cellHeight/2, 32, 32)
+          display.endFill
 
       colorToggle = !colorToggle
 
@@ -122,15 +125,29 @@ class LevelController
   constructor: (gameControl, grid, level) ->
     @gameControl = gameControl
     @gridControl = new GridController(gameControl, grid)
+    @coinControls = []
+    level.addListener('onPlayerCollectCoin', @onPlayerCollectCoin)
 
   onCoinAdd: (coin) ->
     coinControl = new CoinController(@gameControl, @, coin)
+    coin.controller = coinControl
+    @coinControls.push(coinControl)
+
+  updateCoins: () ->
+    for coinControl in @coinControls
+      continue if !coinControl
+      coinControl.coin.move()
+
+  onPlayerCollectCoin: (event) =>
+    @coinControls.splice(@coinControls.indexOf(event.coin.controller), 1)
+    event.coin.controller.delete()
 
 class CoinController
   constructor: (gameControl, levelControl, coin) ->
     display = new PIXI.Graphics()
     display.beginFill(0xCFCF00, 1)
-    display.drawRect(8, 8, 32, 32)
+    gridControl = levelControl.gridControl
+    display.drawCircle(gridControl.cellWidth/2, gridControl.cellHeight/2, 16)
     display.endFill()
     @display = display
 
@@ -140,6 +157,10 @@ class CoinController
       @display.x = coin.gridX * @gridControl.cellWidth
       @display.y = coin.gridY * @gridControl.cellHeight
     )
+    @coin = coin
+
+  delete: () ->
+    @gridControl.display.removeChild(@display)
 
 class GameController
   constructor: () ->
@@ -157,6 +178,8 @@ onBodyLoad = () ->
   coin3 = new CoinEntity(level, 3, 8)
   grid.addWall(grid.getSlot(2,0), grid.getSlot(3, 0))
   grid.addWall(grid.getSlot(11,4), grid.getSlot(11, 5))
+  grid.getSlot(5,6).setOwner(new Player(0x00CC00))
+  grid.getSlot(5,4).setOwner(new Player(0xF000F0))
 
   gameControl = new GameController()
 
@@ -176,9 +199,7 @@ onBodyLoad = () ->
   )
 
   updateCoins = () ->
-    coin.move()
-    coin2.move()
-    coin3.move()
+    levelControl.updateCoins()
     setTimeout(updateCoins, 250)
   render = () ->
     gameControl.renderer.render(gameControl.stage)

@@ -86,8 +86,9 @@ class Player
     @score = 0
     @color = color
 
-class Level
+class Level extends EventHandler
   constructor: (grid) ->
+    super()
     @grid = grid
     @entities = []
 
@@ -245,6 +246,10 @@ class CoinEntity extends MovingEntity
   worth: 1
   onPlayerSlotEnter: (player, slot) ->
     player.score += @worth
+    @level.emitEvent('onPlayerCollectCoin', {
+      coin: @,
+      player: player
+    })
     @delete()
 
 class BombEntity extends MovingEntity
