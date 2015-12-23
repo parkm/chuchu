@@ -1,3 +1,5 @@
+
+
 class GridController
   constructor: (gameControl, grid) ->
     display = new PIXI.Graphics()
@@ -33,6 +35,8 @@ class GridController
     @slotHoverDisplay.visible = false
     @slotHoverDisplay.alpha = 0.5
 
+    @slotArrowGraphics = {}
+
     @width = width
     @height = height
     @grid = grid
@@ -40,6 +44,24 @@ class GridController
     @display = display
     @display.addChild(@slotHoverDisplay)
     gameControl.worldDisplay.addChild(@display)
+
+  createArrowGraphic: () ->
+    x = 0
+    y = 0
+    w = @cellWidth/1.5
+    h = @cellHeight/1.5
+
+    g =  new PIXI.Graphics()
+    g.beginFill(0xFF0000,1)
+    g.drawPolygon([
+      x,y
+      w,h/2,
+      x,h
+    ])
+    g.endFill()
+    g.alpha = 0.5
+    g.pivot = new PIXI.Point(w/2,h/2)
+    return g
 
   updateWalls: (grid) ->
     for slot in grid.slots
@@ -67,18 +89,34 @@ class GridController
         @slotHoverDisplay.y = slot.y * @cellHeight
 
   onKeyDown: (event) ->
+    return if !@hoveringSlot
+
+    dir = null
     if event.keyCode == Inputs.KEY_UP
-      @hoveringSlot.setDirection(Direction.UP)
-      console.log('set to up')
+      dir = Direction.UP
     if event.keyCode == Inputs.KEY_DOWN
-      @hoveringSlot.setDirection(Direction.DOWN)
-      console.log('set to down')
+      dir = Direction.DOWN
     if event.keyCode == Inputs.KEY_LEFT
-      @hoveringSlot.setDirection(Direction.LEFT)
-      console.log('set to left')
+      dir = Direction.LEFT
     if event.keyCode == Inputs.KEY_RIGHT
-      @hoveringSlot.setDirection(Direction.RIGHT)
-      console.log('set to right')
+      dir = Direction.RIGHT
+
+    if dir != null
+      @setSlotDirection(@hoveringSlot, dir)
+
+  setSlotDirection: (slot, dir) ->
+    key = slot.x + ',' + slot.y
+    arrowGraphic = @slotArrowGraphics[key]
+    if !arrowGraphic
+      arrowGraphic = @createArrowGraphic()
+      @slotArrowGraphics[key] = arrowGraphic
+      @display.addChild(arrowGraphic)
+
+    slot.setDirection(dir)
+    arrowGraphic.x = (slot.x * @cellWidth) + @cellWidth/2
+    arrowGraphic.y = (slot.y * @cellHeight) + @cellHeight/2
+    dirMag = Direction.mag(dir)
+    arrowGraphic.rotation = Math.atan2(dirMag.y, dirMag.x)
 
 class LevelController
   constructor: (gameControl, grid, level) ->
