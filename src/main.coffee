@@ -1,5 +1,5 @@
-class GridView
-  constructor: (renderer, world, grid) ->
+class GridController
+  constructor: (gameControl, grid) ->
     display = new PIXI.Graphics()
 
     @cellWidth = 48
@@ -23,11 +23,11 @@ class GridView
     width = @cellWidth * grid.hCells
     height = @cellHeight * grid.vCells
 
-    display.x = renderer.width/2 - width/2
-    display.y = renderer.height/2 - height/1.6
+    display.x = gameControl.renderer.width/2 - width/2
+    display.y = gameControl.renderer.height/2 - height/1.6
 
     @display = display
-    world.addChild(@display)
+    gameControl.worldDisplay.addChild(@display)
 
   updateWalls: (grid) ->
     for slot in grid.slots
@@ -40,37 +40,37 @@ class GridView
         @display.drawRect(slot.x * @cellWidth, slot.y * @cellHeight + @cellHeight - 5, @cellWidth, 10)
         @display.endFill()
 
-class LevelView
-  constructor: (renderer, world, level) ->
-    @renderer = renderer
-    @world = world
-
 class LevelController
-  constructor: (level, view) ->
+  constructor: (gameControl, level) ->
+    @gameControl = gameControl
     grid = new Grid(12, 9)
-    @view = view
-    @gridView = new GridView(view.renderer, view.world, grid)
+    @gridControl = new GridController(gameControl, grid)
 
   onCoinAdd: (coin) ->
-    coinView = new CoinView(@view.renderer, @gridView, coin)
-    coinControl = new CoinController(@, coin, coinView)
+    coinControl = new CoinController(@gameControl, @, coin)
 
-class CoinView
-  constructor: (renderer, gridView, coin) ->
+class CoinController
+  constructor: (gameControl, levelControl, coin) ->
     display = new PIXI.Graphics()
     display.beginFill(0xCFCF00, 1)
     display.drawRect(8, 8, 32, 32)
     display.endFill()
     @display = display
-    gridView.display.addChild(@display)
 
-class CoinController
-  constructor: (levelControl, coin, view) ->
-    @gridView = levelControl.gridView
+    @gridControl = levelControl.gridControl
+    @gridControl.display.addChild(@display)
     coin.addListener('onMove', () =>
-      view.display.x = coin.gridX * @gridView.cellWidth
-      view.display.y = coin.gridY * @gridView.cellHeight
+      @display.x = coin.gridX * @gridControl.cellWidth
+      @display.y = coin.gridY * @gridControl.cellHeight
     )
+
+class GameController
+  constructor: () ->
+    @stage = new PIXI.Stage(0x10109F)
+    @renderer = new PIXI.autoDetectRenderer(800, 600)
+    @worldDisplay = new PIXI.DisplayObjectContainer()
+    @stage.addChild(@worldDisplay)
+    document.body.appendChild(@renderer.view)
 
 onBodyLoad = () ->
   grid = new Grid(12, 9)
@@ -81,16 +81,10 @@ onBodyLoad = () ->
   grid.addWall(grid.getSlot(2,0), grid.getSlot(3, 0))
   grid.addWall(grid.getSlot(11,4), grid.getSlot(11, 5))
 
-  stage = new PIXI.Stage(0x10109F)
-  renderer = new PIXI.autoDetectRenderer(800, 600)
-  world = new PIXI.DisplayObjectContainer()
-  stage.addChild(world)
-  document.body.appendChild(renderer.view)
+  gameControl = new GameController()
 
-  #gridView = new GridView(renderer, world, grid)
-  levelView = new LevelView(renderer, world, level)
-  levelControl = new LevelController(level, levelView)
-  levelControl.gridView.updateWalls(grid)
+  levelControl = new LevelController(gameControl, level)
+  levelControl.gridControl.updateWalls(grid)
 
   levelControl.onCoinAdd(coin)
   levelControl.onCoinAdd(coin2)
@@ -101,6 +95,6 @@ onBodyLoad = () ->
     coin.move()
     coin2.move()
     coin3.move()
-    renderer.render(stage)
+    gameControl.renderer.render(gameControl.stage)
     setTimeout(update, 250)
   update()
